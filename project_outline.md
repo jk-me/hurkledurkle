@@ -6,8 +6,11 @@
 
 ## Non-Functional / Stack
 
-- Hotwire Rails for web, React Native for mobile
-- Shared Rails API backend (Hotwire is web-only; mobile uses the API directly via JSON)
+- Rails + Hotwire (Turbo + Stimulus) for web, with a mobile-responsive frontend
+- Hotwire Native for mobile — the web views are reused inside native wrappers
+- Project structure:
+  - `/` — Rails app (web + Hotwire frontend, serves mobile web views too)
+  - `/android` — Android app wrapper (Hotwire Native for Android)
 - PostgreSQL database
 - Email and password authentication
 
