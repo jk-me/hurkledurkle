@@ -1,0 +1,40 @@
+<%= form_with model: sleep_session, url: sleep_session.new_record? ? sleep_sessions_path : sleep_session_path(sleep_session) do |f| %>
+  <% if sleep_session.errors.any? %>
+    <div style="color: red; margin-bottom: 1rem;">
+      <% sleep_session.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :wind_down_at, "Wind-down time" %>
+    <%= f.datetime_local_field :wind_down_at,
+          value: sleep_session.wind_down_at&.in_time_zone(sleep_session.timezone.presence || Current.user.timezone.presence || "UTC")&.strftime("%Y-%m-%dT%H:%M"),
+          required: true,
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :rise_at, "Rise time (optional — fill in later)" %>
+    <%= f.datetime_local_field :rise_at,
+          value: sleep_session.rise_at&.in_time_zone(sleep_session.timezone.presence || Current.user.timezone.presence || "UTC")&.strftime("%Y-%m-%dT%H:%M"),
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :timezone, "Timezone" %>
+    <%= f.select :timezone,
+          ActiveSupport::TimeZone.all.map { |tz| [tz.name, tz.name] },
+          { selected: sleep_session.timezone.presence || Current.user.timezone.presence || "UTC" },
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+    <%= f.check_box :is_nap %>
+    <%= f.label :is_nap, "This is a nap (not my main sleep)" %>
+  </div>
+
+  <%= f.submit sleep_session.new_record? ? "Log session" : "Save changes",
+        style: "padding: 0.5rem 1rem;" %>
+<% end %>

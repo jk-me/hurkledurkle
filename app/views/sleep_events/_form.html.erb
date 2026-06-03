@@ -1,0 +1,15 @@
+<%= form_with model: [sleep_session, sleep_event], url: sleep_session_sleep_events_path(sleep_session) do |f| %>
+  <div style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-top: 1rem;">
+    <div>
+      <%= f.label :event_type, "Type" %>
+      <%= f.select :event_type, SleepEvent.event_types.keys.map { |k| [k.capitalize, k] },
+            {},
+            style: "padding: 0.4rem;" %>
+    </div>
+    <div>
+      <%= f.label :occurred_at, "Time" %>
+      <%= f.datetime_local_field :occurred_at, required: true, style: "padding: 0.4rem;" %>
+    </div>
+    <%= f.submit "Add event", style: "padding: 0.4rem 0.75rem;" %>
+  </div>
+<% end %>

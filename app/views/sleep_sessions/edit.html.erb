@@ -1,0 +1,20 @@
+<h1>Edit Sleep Session</h1>
+
+<%= render "form", sleep_session: @sleep_session %>
+
+<hr style="margin: 2rem 0;">
+
+<h2>Interrupted sleep events</h2>
+<p style="color: #666; font-size: 0.9rem;">Add additional sleep/wake pairs for interrupted sleep within this session.</p>
+
+<div id="sleep_events_<%= @sleep_session.id %>">
+  <% @sleep_session.sleep_events.order(:occurred_at).each do |event| %>
+    <%= render "sleep_events/event", sleep_session: @sleep_session, sleep_event: event %>
+  <% end %>
+</div>
+
+<turbo-frame id="sleep_event_form_<%= @sleep_session.id %>">
+  <%= render "sleep_events/form", sleep_session: @sleep_session, sleep_event: SleepEvent.new %>
+</turbo-frame>
+
+<p style="margin-top: 1rem;"><%= link_to "Back to dashboard", dashboard_path %></p>

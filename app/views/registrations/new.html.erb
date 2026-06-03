@@ -1,0 +1,30 @@
+<h1>Create Account</h1>
+
+<%= form_with model: @user, url: registration_path do |f| %>
+  <% if @user.errors.any? %>
+    <div style="color: red; margin-bottom: 1rem;">
+      <% @user.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :email_address %>
+    <%= f.email_field :email_address, required: true, autocomplete: "email", style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :password %>
+    <%= f.password_field :password, required: true, autocomplete: "new-password", style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :password_confirmation %>
+    <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <%= f.submit "Create account", style: "padding: 0.5rem 1rem;" %>
+<% end %>
+
+<p style="margin-top: 1rem;">Already have an account? <%= link_to "Sign in", new_session_path %></p>
