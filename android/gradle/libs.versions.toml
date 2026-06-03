@@ -1,0 +1,11 @@
+[versions]
+agp = "8.4.0"       # Android Gradle Plugin version
+kotlin = "1.9.20"   # Kotlin version
+
+[libraries]
+# (You can leave your existing libraries here)
+
+[plugins]
+# These keys match the "libs.plugins.android.application" structure
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
