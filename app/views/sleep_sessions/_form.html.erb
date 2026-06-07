@@ -28,6 +28,7 @@
           ActiveSupport::TimeZone.all.map { |tz| [tz.name, tz.name] },
           { selected: sleep_session.timezone.presence || Current.user.timezone.presence || "UTC" },
           style: "display: block; width: 100%; padding: 0.4rem;" %>
+    <p style="color:#666; font-size:0.9rem; margin-top:0.35rem;">Defaults from your <%= link_to "profile", edit_profile_path %>.</p>
   </div>
 
   <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">

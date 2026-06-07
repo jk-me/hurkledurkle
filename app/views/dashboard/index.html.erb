@@ -10,29 +10,47 @@
 <% if @sessions_by_date.empty? %>
   <p>No sessions logged yet. <%= link_to "Log your first sleep session", new_sleep_session_path %>.</p>
 <% else %>
-  <div style="overflow-x: auto; margin-bottom: 2rem;">
-    <div style="display: flex; align-items: flex-end; gap: 4px; min-height: 200px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
-      <% (@since..Date.today).each do |date| %>
-        <% day_sessions = @sessions_by_date[date] || [] %>
-        <turbo-frame id="day_<%= date %>">
-          <div style="text-align: center; min-width: 28px;">
-            <% day_sessions.each do |s| %>
-              <div style="background: <%= s.is_nap ? '#93c5fd' : '#3b82f6' %>; width: 24px; height: 40px; margin: 1px auto; cursor: pointer;"
-                   onclick="location.href='<%= edit_sleep_session_path(s) %>'">
-              </div>
-            <% end %>
-            <div style="font-size: 10px; color: #666; writing-mode: vertical-rl; transform: rotate(180deg); margin-top: 4px;">
-              <%= date.strftime("%-m/%-d") %>
-            </div>
-          </div>
-        </turbo-frame>
+  <section class="chart-card">
+    <h2>Main timing graph</h2>
+    <p class="chart-subtitle">Lines connect wind-down, sleep, wake, and rise times across days using your main sleep session for each day.</p>
+    <div class="chart-legend">
+      <% DashboardHelper::TIMING_SERIES.each_value do |config| %>
+        <span class="chart-legend__item"><span class="chart-legend__swatch" style="background:<%= config[:color] %>"></span><%= config[:label] %></span>
       <% end %>
     </div>
-    <p style="font-size: 12px; color: #666; margin-top: 4px;">
-      <span style="display:inline-block;width:12px;height:12px;background:#3b82f6;vertical-align:middle;"></span> Main sleep &nbsp;
-      <span style="display:inline-block;width:12px;height:12px;background:#93c5fd;vertical-align:middle;"></span> Nap
-    </p>
-  </div>
+    <div class="chart-wrap">
+      <%= timing_graph_svg(@chart_dates, @main_sessions_by_date, @time_zone_name) %>
+    </div>
+  </section>
+
+  <section class="chart-card" data-controller="tabs" data-tabs-active-value="summary">
+    <h2>Calculated values</h2>
+    <div class="tabs__list" role="tablist" aria-label="Calculated sleep values tabs">
+      <button class="tabs__button" data-tabs-target="button" data-action="tabs#switch" data-tab="summary" role="tab" type="button">Summary</button>
+      <button class="tabs__button" data-tabs-target="button" data-action="tabs#switch" data-tab="pre_sleep" role="tab" type="button">Pre-sleep</button>
+      <button class="tabs__button" data-tabs-target="button" data-action="tabs#switch" data-tab="rest" role="tab" type="button">Rest</button>
+      <button class="tabs__button" data-tabs-target="button" data-action="tabs#switch" data-tab="hurkle_durkle" role="tab" type="button">Hurkle-durkle</button>
+    </div>
+
+    <div data-tabs-target="panel" data-tab-panel="summary" role="tabpanel">
+      <div class="chart-legend">
+        <% DashboardHelper::CALCULATED_SERIES.each_value do |config| %>
+          <span class="chart-legend__item"><span class="chart-legend__swatch" style="background:<%= config[:color] %>"></span><%= config[:label] %></span>
+        <% end %>
+      </div>
+      <div class="chart-wrap">
+        <%= calculated_graph_svg(@chart_dates, @main_sessions_by_date, :summary) %>
+      </div>
+    </div>
+
+    <% DashboardHelper::CALCULATED_SERIES.each_key do |series_key| %>
+      <div data-tabs-target="panel" data-tab-panel="<%= series_key %>" role="tabpanel" hidden>
+        <div class="chart-wrap">
+          <%= calculated_graph_svg(@chart_dates, @main_sessions_by_date, series_key) %>
+        </div>
+      </div>
+    <% end %>
+  </section>
 
   <h2>Sessions</h2>
   <table style="width: 100%; border-collapse: collapse;">
@@ -40,8 +58,12 @@
       <tr style="border-bottom: 2px solid #e5e7eb; text-align: left;">
         <th style="padding: 0.5rem;">Date</th>
         <th style="padding: 0.5rem;">Wind-down</th>
+        <th style="padding: 0.5rem;">Sleep</th>
+        <th style="padding: 0.5rem;">Wake</th>
         <th style="padding: 0.5rem;">Rise</th>
         <th style="padding: 0.5rem;">Rest</th>
+        <th style="padding: 0.5rem;">Pre-sleep</th>
+        <th style="padding: 0.5rem;">Hurkle-durkle</th>
         <th style="padding: 0.5rem;">Type</th>
         <th></th>
       </tr>
@@ -51,14 +73,13 @@
         <% sessions.each do |s| %>
           <tr style="border-bottom: 1px solid #f3f4f6;" id="sleep_session_<%= s.id %>">
             <td style="padding: 0.5rem;"><%= date.strftime("%b %-d, %Y") %></td>
-            <td style="padding: 0.5rem;"><%= s.wind_down_at&.in_time_zone(s.timezone)&.strftime("%H:%M") %></td>
-            <td style="padding: 0.5rem;"><%= s.rise_at&.in_time_zone(s.timezone)&.strftime("%H:%M") || "—" %></td>
-            <td style="padding: 0.5rem;">
-              <% if s.wind_down_at && s.rise_at %>
-                <% mins = ((s.rise_at - s.wind_down_at) / 60).round %>
-                <%= "#{mins / 60}h #{mins % 60}m" %>
-              <% else %>—<% end %>
-            </td>
+            <td style="padding: 0.5rem;"><%= display_local_time(s.wind_down_at, s.timezone) %></td>
+            <td style="padding: 0.5rem;"><%= display_local_time(dashboard_sleep_time(s), s.timezone) %></td>
+            <td style="padding: 0.5rem;"><%= display_local_time(dashboard_wake_time(s), s.timezone) %></td>
+            <td style="padding: 0.5rem;"><%= display_local_time(s.rise_at, s.timezone) %></td>
+            <td style="padding: 0.5rem;"><%= display_minutes(s.rest_minutes) %></td>
+            <td style="padding: 0.5rem;"><%= display_minutes(s.pre_sleep_minutes) %></td>
+            <td style="padding: 0.5rem;"><%= display_minutes(s.hurkle_durkle_minutes) %></td>
             <td style="padding: 0.5rem;"><%= s.is_nap ? "Nap" : "Main" %></td>
             <td style="padding: 0.5rem; text-align: right;">
               <%= link_to "Edit", edit_sleep_session_path(s) %>

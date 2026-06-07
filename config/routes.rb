@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
   resource :registration, only: %i[new create]
+  resource :profile, only: %i[show edit update]
 
   resources :sleep_sessions do
     resources :sleep_events, only: %i[create destroy]

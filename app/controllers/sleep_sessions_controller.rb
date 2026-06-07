@@ -6,7 +6,7 @@ class SleepSessionsController < ApplicationController
   end
 
   def new
-    @sleep_session = Current.user.sleep_sessions.build
+    @sleep_session = Current.user.sleep_sessions.build(timezone: Current.user.timezone)
   end
 
   def create

@@ -24,6 +24,19 @@
     <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", style: "display: block; width: 100%; padding: 0.4rem;" %>
   </div>
 
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :timezone, "Default timezone" %>
+    <%= f.select :timezone,
+          ActiveSupport::TimeZone.all.map { |tz| [tz.name, tz.name] },
+          { selected: @user.timezone.presence || "UTC" },
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :bedtime_reset_time, "Bedtime reset time" %>
+    <%= f.time_field :bedtime_reset_time, value: (@user.bedtime_reset_time&.strftime("%H:%M") || "12:00"), style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
   <%= f.submit "Create account", style: "padding: 0.5rem 1rem;" %>
 <% end %>
 

@@ -1,0 +1,28 @@
+<h1>Profile</h1>
+<p>Set your default timezone and bedtime reset time. New sleep sessions use these values automatically.</p>
+
+<%= form_with model: @user, url: profile_path, method: :patch do |f| %>
+  <% if @user.errors.any? %>
+    <div style="color: red; margin-bottom: 1rem;">
+      <% @user.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :timezone, "Default timezone" %>
+    <%= f.select :timezone,
+          ActiveSupport::TimeZone.all.map { |tz| [tz.name, tz.name] },
+          {},
+          style: "display:block; width:100%; padding:0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :bedtime_reset_time, "Bedtime reset time" %>
+    <%= f.time_field :bedtime_reset_time, style: "display:block; width:100%; padding:0.4rem;" %>
+    <p style="color:#666; font-size:0.9rem; margin-top:0.35rem;">Sleep before this time counts toward the previous day.</p>
+  </div>
+
+  <%= f.submit "Save profile", style: "padding:0.5rem 1rem;" %>
+<% end %>

@@ -8,7 +8,10 @@
     </div>
     <div>
       <%= f.label :occurred_at, "Time" %>
-      <%= f.datetime_local_field :occurred_at, required: true, style: "padding: 0.4rem;" %>
+      <%= f.datetime_local_field :occurred_at,
+            value: sleep_event.occurred_at&.in_time_zone(sleep_session.timezone)&.strftime("%Y-%m-%dT%H:%M"),
+            required: true,
+            style: "padding: 0.4rem;" %>
     </div>
     <%= f.submit "Add event", style: "padding: 0.4rem 0.75rem;" %>
   </div>
