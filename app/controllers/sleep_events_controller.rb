@@ -2,7 +2,10 @@ class SleepEventsController < ApplicationController
   before_action :set_sleep_session
 
   def create
-    @sleep_event = @sleep_session.sleep_events.build(sleep_event_params)
+    @sleep_event = @sleep_session.sleep_events.build(
+      event_type: sleep_event_params[:event_type],
+      occurred_at: sleep_event_params[:occurred_at].in_time_zone(@sleep_session.timezone)
+    )
     if @sleep_event.save
       respond_to do |format|
         format.html { redirect_to edit_sleep_session_path(@sleep_session) }

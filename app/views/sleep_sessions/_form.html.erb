@@ -16,6 +16,20 @@
   </div>
 
   <div style="margin-bottom: 1rem;">
+    <%= f.label :sleep_at, "Sleep time (optional — fill in later)" %>
+    <%= f.datetime_local_field :sleep_at,
+          value: sleep_session.sleep_events.find_by(event_type: "sleep")&.occurred_at&.in_time_zone(sleep_session.timezone.presence || Current.user.timezone.presence || "UTC")&.strftime("%Y-%m-%dT%H:%M"),
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
+    <%= f.label :wake_at, "Wake time (optional — fill in later)" %>
+    <%= f.datetime_local_field :wake_at,
+          value: sleep_session.sleep_events.find_by(event_type: "wake")&.occurred_at&.in_time_zone(sleep_session.timezone.presence || Current.user.timezone.presence || "UTC")&.strftime("%Y-%m-%dT%H:%M"),
+          style: "display: block; width: 100%; padding: 0.4rem;" %>
+  </div>
+
+  <div style="margin-bottom: 1rem;">
     <%= f.label :rise_at, "Rise time (optional — fill in later)" %>
     <%= f.datetime_local_field :rise_at,
           value: sleep_session.rise_at&.in_time_zone(sleep_session.timezone.presence || Current.user.timezone.presence || "UTC")&.strftime("%Y-%m-%dT%H:%M"),
