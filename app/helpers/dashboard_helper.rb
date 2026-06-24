@@ -72,7 +72,7 @@ module DashboardHelper
     plot_width = width - left - right
     plot_height = height - top - bottom
     step_x = chart_dates.size > 1 ? plot_width.to_f / (chart_dates.size - 1) : plot_width.to_f
-
+    
     content_tag(:svg, viewBox: "0 0 #{width} #{height}", class: "chart-svg", role: "img", aria: { label: "Sleep timing chart" }) do
       safe_join([
         content_tag(:rect, nil, x: 0, y: 0, width: width, height: height, fill: "white"),
@@ -106,8 +106,8 @@ module DashboardHelper
   end
 
   def time_axis_labels(left, top, plot_height)
-    safe_join((0..24).step(6).map do |hour|
-      y = top + plot_height - (hour / 24.0 * plot_height)
+    safe_join([ 8, 10, 12, 2, 4, 6, 8, 10, 12, 14 ].map.with_index do |hour, idx|
+      y = top + plot_height - (idx / 10.0 * plot_height)
       safe_join([
         content_tag(:line, nil, x1: left, y1: y, x2: 842, y2: y, stroke: "#e5e7eb", "stroke-width": 1),
         content_tag(:text, format("%02d:00", hour % 24), x: 8, y: y + 4, fill: "#6b7280", "font-size": 11)
@@ -142,7 +142,7 @@ module DashboardHelper
 
         x = left + (index * step_x)
         y = if mode == :time
-          top + plot_height - (minutes_of_day(value, extra) / 1440.0 * plot_height)
+          top + plot_height - (minutes_of_day(value, extra) / 1200.0 * plot_height) # 10 steps × 120 min = 1200 min scale
         else
           max_minutes = extra
           top + plot_height - (value.to_f / max_minutes * plot_height)
@@ -163,7 +163,11 @@ module DashboardHelper
 
   def minutes_of_day(time, time_zone_name)
     local_time = time.in_time_zone(time_zone_name)
-    (local_time.hour * 60) + local_time.min
+    raw = (local_time.hour * 60) + local_time.min
+    # Return minutes since 20:00 (8pm) to align with the axis window (20:00–14:00 next day).
+    # Evening times (>=20:00) are offset from 8pm; morning/afternoon times (<20:00)
+    # wrap around midnight by adding the remaining minutes in the day.
+    raw >= 20 * 60 ? raw - (20 * 60) : raw + (24 * 60) - (20 * 60)
   end
 
   def time_for_series(session, series)
