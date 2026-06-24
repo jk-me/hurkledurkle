@@ -22,7 +22,20 @@ class SleepSession < ApplicationRecord
   end
 
   def rest_minutes
-    minutes_between(sleep_at, wake_at)
+    ordered = sleep_events.order(:occurred_at).to_a
+    sleeps = ordered.select(&:sleep?)
+    wakes  = ordered.select(&:wake?)
+
+    return nil if sleeps.empty? || wakes.empty?
+
+    # pairs sleep and wake events [ [sleep_event, wake_event], ... ] , nil if different lengths
+    sleeps.zip(wakes).sum do |sleep_event, wake_event|
+      if wake_event && sleep_event
+        minutes_between(sleep_event.occurred_at, wake_event.occurred_at) || 0
+      else
+        0
+      end
+    end
   end
 
   def hurkle_durkle_minutes

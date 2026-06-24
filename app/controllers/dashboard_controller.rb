@@ -12,7 +12,7 @@ class DashboardController < ApplicationController
       .sleep_sessions
       .where(bucketed_date: @since..)
       .includes(:sleep_events)
-      .order(bucketed_date: :asc)
+      .order(bucketed_date: :desc)
       .group_by(&:bucketed_date)
 
     @chart_dates = (@since..@today).to_a
