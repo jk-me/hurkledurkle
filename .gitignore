@@ -29,7 +29,9 @@
 # android files
 /android/local.properties
 /android/build/
+/android/app/build/
 /android/.idea
+/android/*.hprof
 /android/.gradle
 /android/*.jkts
 /android/*.keystore
