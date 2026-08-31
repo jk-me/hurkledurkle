@@ -1,18 +1,23 @@
 pluginManagement {
     repositories {
-        google()         // <-- CRITICAL: This is where the Android plugin lives
-        mavenCentral()   // <-- CRITICAL: This holds secondary Kotlin tools
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
         gradlePluginPortal()
     }
 }
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()         // <-- Required for app dependencies
-        mavenCentral()   // <-- Required for app dependencies
+        google()
+        mavenCentral()
     }
 }
 
-rootProject.name = "YourAppName" // Keep your actual app name here
+rootProject.name = "Hurkledurkle"
 include(":app")

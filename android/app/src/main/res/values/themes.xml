@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Edge-to-edge base theme; Compose handles the actual theming -->
+    <style name="Theme.Hurkledurkle" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

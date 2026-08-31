@@ -28,6 +28,8 @@
 
 # android files
 /android/local.properties
+/android/.idea/
+/android/.gradle/
 /android/build/
 /android/app/build/
 /android/.idea
@@ -39,4 +41,7 @@
 /android/app/src/debug/google-services.json
 /android/app/src/release/google-services.json
 /android/app/src/profile/google-services.json
+/android/captures/
+/android/.externalNativeBuild/
+/android/.cxx/
 
