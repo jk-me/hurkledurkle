@@ -8,13 +8,17 @@ import com.hurkledurkle.app.data.model.SleepSessionWithEvents
 import com.hurkledurkle.app.data.preferences.UserPreferences
 import com.hurkledurkle.app.data.repository.SleepRepository
 import com.hurkledurkle.app.util.TimeUtils
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.hurkledurkle.app.util.CsvExporter
 import java.time.LocalDate
 
 data class DashboardUiState(
@@ -31,6 +35,9 @@ class DashboardViewModel(
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
+    private val _exportCsvEvent = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val exportCsvEvent: SharedFlow<String> = _exportCsvEvent.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -101,6 +108,13 @@ class DashboardViewModel(
 
     fun deleteSession(sessionId: Long) {
         viewModelScope.launch { repository.deleteSession(sessionId) }
+    }
+
+    fun exportCsv() {
+        viewModelScope.launch {
+            val csv = CsvExporter.buildCsv(_uiState.value.sessions)
+            _exportCsvEvent.emit(csv)
+        }
     }
 
     class Factory(

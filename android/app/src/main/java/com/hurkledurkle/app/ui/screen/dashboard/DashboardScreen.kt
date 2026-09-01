@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,12 +43,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.content.Intent
+import android.content.Context
 import com.hurkledurkle.app.data.model.SleepSessionWithEvents
 import com.hurkledurkle.app.ui.components.MetricsChart
 import com.hurkledurkle.app.ui.components.SleepLineChart
 import com.hurkledurkle.app.util.TimeUtils
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,12 +66,23 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<SleepSessionWithEvents?>(null) }
     var selectedTab by remember { mutableIntStateOf(0) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.exportCsvEvent.collect { csv -> shareCsv(context, csv) }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Hurkledurkle") },
                 actions = {
+                    IconButton(
+                        onClick = { viewModel.exportCsv() },
+                        enabled = uiState.sessions.isNotEmpty()
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Export CSV")
+                    }
                     IconButton(onClick = onSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
@@ -275,4 +293,17 @@ private fun TimeLabel(label: String, time: String) {
         )
         Text(time, style = MaterialTheme.typography.bodySmall)
     }
+}
+
+private fun shareCsv(context: Context, csv: String) {
+    val file = File(context.cacheDir, "hurkledurkle_export.csv")
+    file.writeText(csv)
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/csv"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, "Hurkledurkle sleep data export")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, "Export sleep data"))
 }
