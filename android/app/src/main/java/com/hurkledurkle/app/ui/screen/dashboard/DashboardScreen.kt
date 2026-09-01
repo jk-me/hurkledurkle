@@ -270,6 +270,13 @@ private fun SessionCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    session.preSleepMinutes?.let { ps ->
+                        Text(
+                            "Pre-sleep: ${TimeUtils.formatDuration(ps)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     session.hurkledurkleMinutes?.let { hd ->
                         Text(
                             "Hurkle-durkle: ${TimeUtils.formatDuration(hd)}",
