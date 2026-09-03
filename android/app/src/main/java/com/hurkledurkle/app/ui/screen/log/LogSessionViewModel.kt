@@ -62,7 +62,7 @@ class LogSessionViewModel(
                     _uiState.update { _ ->
                         LogSessionUiState(
                             isEdit = true,
-                            date = LocalDate.parse(swe.session.bucketedDate),
+                            date = TimeUtils.epochToLocalDateTime(swe.session.windDownAt, tz).toLocalDate(),
                             windDownTime = epochToEntry(swe.session.windDownAt, tz),
                             primarySleepTime = swe.primarySleepAt?.let { epochToEntry(it, tz) },
                             primaryWakeTime = swe.primaryWakeAt?.let { epochToEntry(it, tz) },
