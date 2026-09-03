@@ -24,11 +24,12 @@ object CsvExporter {
     }
 
     private fun StringBuilder.appendSessionSection(sessions: List<SleepSessionWithEvents>) {
-        appendLine("date,timezone,is_nap,wind_down_at,sleep_at,wake_at,rise_at,rest_minutes,pre_sleep_minutes,hurkle_durkle_minutes")
+        appendLine("id,date,timezone,is_nap,wind_down_at,sleep_at,wake_at,rise_at,rest_minutes,pre_sleep_minutes,hurkle_durkle_minutes")
         for (s in sessions) {
             val tz = s.session.timezone
             appendLine(
                 row(
+                    s.session.id.toString(),
                     s.session.bucketedDate,
                     tz,
                     s.session.isNap.toString(),
@@ -45,13 +46,14 @@ object CsvExporter {
     }
 
     private fun StringBuilder.appendEventSection(sessions: List<SleepSessionWithEvents>) {
-        appendLine("id,date,timezone,event_type,occurred_at")
+        appendLine("session_id,event_id,date,timezone,event_type,occurred_at")
         for (s in sessions) {
             val tz = s.session.timezone
             for (event in s.events.sortedBy { it.occurredAt }) {
                 appendLine(
                     row(
                         s.session.id.toString(),
+                        event.id.toString(),
                         s.session.bucketedDate,
                         tz,
                         if (event.eventType == SleepEventEntity.TYPE_SLEEP) "sleep" else "wake",

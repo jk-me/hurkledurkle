@@ -3,7 +3,6 @@ package com.hurkledurkle.app.ui.screen.log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.hurkledurkle.app.data.local.entity.SleepEventEntity
 import com.hurkledurkle.app.data.local.entity.SleepSessionEntity
 import com.hurkledurkle.app.data.preferences.UserPreferences
 import com.hurkledurkle.app.data.repository.SleepRepository
@@ -15,9 +14,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
 import java.util.TimeZone
 
 data class TimeEntry(val hour: Int, val minute: Int)
@@ -123,54 +119,31 @@ class LogSessionViewModel(
                 val resetH = prefs.bedtimeResetHour.first()
                 val resetM = prefs.bedtimeResetMinute.first()
                 val tz = state.timezone
-                val zoneId = ZoneId.of(tz)
-                val baseDate = state.date
-
-                /** Converts a TimeEntry on baseDate to epoch millis, bumping to the next day if
-                 *  the result would land before [notBefore]. */
-                fun entryToEpoch(entry: TimeEntry, notBefore: Long = 0L): Long {
-                    val candidate = LocalDateTime.of(baseDate, LocalTime.of(entry.hour, entry.minute))
-                        .atZone(zoneId).toInstant().toEpochMilli()
-                    return if (candidate < notBefore) {
-                        LocalDateTime.of(baseDate.plusDays(1), LocalTime.of(entry.hour, entry.minute))
-                            .atZone(zoneId).toInstant().toEpochMilli()
-                    } else candidate
-                }
-
-                val windDownEpoch = entryToEpoch(windDown)
-                val riseEpoch = state.riseTime?.let { entryToEpoch(it, windDownEpoch) }
-                val bucketedDate = TimeUtils.computeBucketedDate(windDownEpoch, tz, resetH, resetM)
+                val timestamps = LogSessionTimeMapper.map(
+                    date = state.date,
+                    windDown = windDown,
+                    sleep = state.primarySleepTime,
+                    wake = state.primaryWakeTime,
+                    rise = state.riseTime,
+                    extraPairs = state.extraPairs,
+                    timezone = tz,
+                    resetHour = resetH,
+                    resetMinute = resetM
+                )
 
                 val sessionEntity = SleepSessionEntity(
                     id = editSessionId ?: 0,
-                    bucketedDate = bucketedDate,
-                    windDownAt = windDownEpoch,
-                    riseAt = riseEpoch,
+                    bucketedDate = timestamps.bucketedDate,
+                    windDownAt = timestamps.windDownAt,
+                    riseAt = timestamps.riseAt,
                     timezone = tz,
                     isNap = state.isNap
                 )
 
-                // Build chronologically ordered event list
-                val events = mutableListOf<SleepEventEntity>()
-                var cursor = windDownEpoch
-
-                fun addEvent(type: Int, entry: TimeEntry) {
-                    val epoch = entryToEpoch(entry, cursor)
-                    events.add(SleepEventEntity(sleepSessionId = 0, eventType = type, occurredAt = epoch))
-                    cursor = epoch
-                }
-
-                state.primarySleepTime?.let { addEvent(SleepEventEntity.TYPE_SLEEP, it) }
-                state.primaryWakeTime?.let { addEvent(SleepEventEntity.TYPE_WAKE, it) }
-                for (pair in state.extraPairs) {
-                    pair.sleepTime?.let { addEvent(SleepEventEntity.TYPE_SLEEP, it) }
-                    pair.wakeTime?.let { addEvent(SleepEventEntity.TYPE_WAKE, it) }
-                }
-
                 if (state.isEdit) {
-                    repository.updateSession(sessionEntity, events)
+                    repository.updateSession(sessionEntity, timestamps.events)
                 } else {
-                    repository.insertSession(sessionEntity, events)
+                    repository.insertSession(sessionEntity, timestamps.events)
                 }
 
                 _uiState.update { it.copy(isSaving = false, savedSuccessfully = true) }
