@@ -30,6 +30,7 @@
 /android/local.properties
 /android/.idea/
 /android/.gradle/
+/android/.kotlin/
 /android/*.hprof
 /android/build/
 /android/app/build/
